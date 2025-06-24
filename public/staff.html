@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dismissal Queue</title>
+</head>
+<body>
+  <h1>Current Queue</h1>
+  <ul id="queueList"></ul>
+
+  <button onclick="refreshQueue()">🔄 Refresh</button>
+  <button onclick="clearQueue()">🧹 Clear Queue</button>
+
+  <h2>Dismissal Log</h2>
+  <ul id="logList"></ul>
+
+  <script>
+    async function fetchQueue() {
+      const res = await fetch('/queue');
+      const queue = await res.json();
+      const list = document.getElementById('queueList');
+      list.innerHTML = "";
+      queue.forEach(name => {
+        const li = document.createElement('li');
+        li.textContent = name;
+        list.appendChild(li);
+      });
+    }
+
+    async function fetchLog() {
+      const res = await fetch('/log');
+      const log = await res.json();
+      const list = document.getElementById('logList');
+      list.innerHTML = "";
+      log.slice().reverse().forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name} @ ${new Date(entry.timestamp).toLocaleTimeString()}`;
+        list.appendChild(li);
+      });
+    }
+
+    async function refreshQueue() {
+      await fetchQueue();
+      await fetchLog();
+    }
+
+    async function clearQueue() {
+      await fetch('/clear', { method: 'POST' });
+      await refreshQueue();
+    }
+
+    setInterval(refreshQueue, 3000); // Auto-refresh every 3 seconds
+    refreshQueue(); // Initial load
+  </script>
+</body>
+</html>
